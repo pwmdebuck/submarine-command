@@ -7,7 +7,7 @@
     "shared"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
+    "dev": "npm run build -w shared && concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
     "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
     "start": "npm run start -w server"
   },
