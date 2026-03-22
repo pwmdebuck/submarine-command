@@ -9,10 +9,11 @@ export interface ClientToServerEvents {
   'game:start':  (payload: { roomId: string }) => void
 
   // Captain
-  'captain:setStart': (payload: { roomId: string; position: Coord }) => void
-  'captain:move':     (payload: { roomId: string; direction: Direction }) => void
-  'captain:surface':  (payload: { roomId: string }) => void
-  'captain:diveReady':(payload: { roomId: string }) => void
+  'captain:setStart':     (payload: { roomId: string; position: Coord }) => void
+  'captain:move':         (payload: { roomId: string; direction: Direction }) => void
+  'captain:surface':      (payload: { roomId: string }) => void
+  'captain:diveReady':    (payload: { roomId: string }) => void
+  'captain:detonateMine': (payload: { roomId: string; position: Coord }) => void
 
   // Systems
   'system:activate':  (payload: { roomId: string; system: SystemName; params?: Record<string, unknown> }) => void
