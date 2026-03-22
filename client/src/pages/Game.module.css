@@ -8,17 +8,18 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  padding: 8px 16px;
+  padding: 6px 16px;
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
+  border-bottom: 2px solid var(--border);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-.roomCode { color: var(--accent-green); font-weight: bold; }
+.roomCode { color: var(--glow); font-weight: bold; }
 .scenario { color: var(--text-muted); }
-.role { color: var(--accent-blue); margin-left: auto; }
+.role { color: var(--text); margin-left: auto; }
 
 .damage {
   display: flex;
@@ -27,7 +28,14 @@
 }
 
 .dmgFilled { color: var(--accent-red); }
-.dmgEmpty  { color: var(--surface2); }
+.dmgEmpty  { color: var(--border); }
+
+.enemyDamage {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  opacity: 0.6;
+}
 
 .main {
   flex: 1;

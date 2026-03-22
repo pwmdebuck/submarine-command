@@ -3,6 +3,7 @@ import { useGameStore } from '../store'
 import { socket } from '../socket'
 import { MAPS } from '@submarine/shared'
 import type { Direction } from '@submarine/shared'
+import { MiniMap } from '../components/MiniMap'
 import styles from './RadioOperator.module.css'
 
 const DELTA: Record<Direction, { dx: number; dy: number }> = {
@@ -16,33 +17,27 @@ export function RadioOperator() {
   const { room, player } = useGameStore()
   const svgRef = useRef<SVGSVGElement>(null)
 
-  // Tracking state — enemy route drawn on transparent overlay
   const [trackedPath, setTrackedPath] = useState<{ dx: number; dy: number }[]>([])
   const [overlayOffset, setOverlayOffset] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const dragStart = useRef({ mx: 0, my: 0, ox: 0, oy: 0 })
 
-  // Manual move log (radio operator's own entries)
   const [moveLog, setMoveLog] = useState<{ dir: Direction; turn: number }[]>([])
   const turnRef = useRef(0)
 
-  // Incoming move flash — visible for 1 second, then must be manually plotted
   const [flashDir, setFlashDir] = useState<Direction | null>(null)
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Estimate — RO clicks map to mark likely enemy position, shared with captain
   const [estimate, setEstimateState] = useState<{ row: number; col: number; age: number } | null>(null)
   const estimateRef = useRef<{ row: number; col: number; age: number } | null>(null)
 
-  // Intel log (drone/sonar results)
   const [intelLog, setIntelLog] = useState<string[]>([])
 
   useEffect(() => {
     function onEnemyMove({ team, direction }: { team: string; direction: Direction }) {
       if (!player) return
-      if (team === player.team) return  // only track enemy
+      if (team === player.team) return
 
-      // Flash the direction for 1 second — radio operator must manually plot it
       setFlashDir(direction)
       if (flashTimer.current) clearTimeout(flashTimer.current)
       flashTimer.current = setTimeout(() => setFlashDir(null), 1000)
@@ -74,7 +69,8 @@ export function RadioOperator() {
   const W = map.cols * cellSize
   const H = map.rows * cellSize
 
-  // Build overlay path from tracked deltas, starting at center
+  const ownSub = room.teams[player.team].submarine
+
   const startX = W / 2
   const startY = H / 2
   let curX = startX
@@ -101,7 +97,12 @@ export function RadioOperator() {
     if (!isDragging) return
     const dx = e.clientX - dragStart.current.mx
     const dy = e.clientY - dragStart.current.my
-    setOverlayOffset({ x: dragStart.current.ox + dx, y: dragStart.current.oy + dy })
+    const rawX = dragStart.current.ox + dx
+    const rawY = dragStart.current.oy + dy
+    setOverlayOffset({
+      x: Math.round(rawX / cellSize) * cellSize,
+      y: Math.round(rawY / cellSize) * cellSize,
+    })
   }
 
   function onMouseUp() {
@@ -138,7 +139,6 @@ export function RadioOperator() {
     turnRef.current++
     setMoveLog((l) => [...l.slice(-49), { dir, turn: turnRef.current }])
     setTrackedPath((p) => [...p, DELTA[dir]])
-    // Age the estimate with each plotted move
     if (estimateRef.current) {
       const aged = { ...estimateRef.current, age: estimateRef.current.age + 1 }
       estimateRef.current = aged
@@ -147,41 +147,57 @@ export function RadioOperator() {
     }
   }
 
+  function sendEstimate() {
+    const last = pathPoints[pathPoints.length - 1]
+    const col = Math.max(0, Math.min(map.cols - 1, Math.floor((last.x + overlayOffset.x) / cellSize)))
+    const row = Math.max(0, Math.min(map.rows - 1, Math.floor((last.y + overlayOffset.y) / cellSize)))
+    markEstimate(row, col)
+  }
+
   const DIR_ARROW: Record<Direction, string> = { N: '▲', S: '▼', E: '▶', W: '◀' }
 
   return (
     <div className={styles.radioOp}>
-      <h2>Radio Operator</h2>
-
-      {/* Intercept flash — visible 1 second */}
+      {/* Intercept flash — full-width banner */}
       <div className={`${styles.interceptFlash} ${flashDir ? styles.interceptVisible : ''}`}>
         {flashDir && <>INTERCEPT: {DIR_ARROW[flashDir]} {flashDir}</>}
       </div>
 
-      {/* Manual direction input */}
-      <div className={styles.manualInput}>
-        <span className={styles.manualLabel}>Plot move:</span>
-        <div className={styles.dpad}>
-          <div />
-          <button onClick={() => plotMove('N')} className={styles.dpadBtn}>{DIR_ARROW.N}</button>
-          <div />
-          <button onClick={() => plotMove('W')} className={styles.dpadBtn}>{DIR_ARROW.W}</button>
-          <div />
-          <button onClick={() => plotMove('E')} className={styles.dpadBtn}>{DIR_ARROW.E}</button>
-          <div />
-          <button onClick={() => plotMove('S')} className={styles.dpadBtn}>{DIR_ARROW.S}</button>
-          <div />
-        </div>
-      </div>
-
       <div className={styles.layout}>
+        {/* Col 1: Own MiniMap + vessel status */}
+        <div className={styles.colLeft}>
+          <div className={styles.ownMapSection}>
+            <div className={styles.sectionLabel}>OWN POSITION</div>
+            <MiniMap scenario={room.scenario} submarine={ownSub} size={160} />
+          </div>
+
+          <section className={styles.ownStatus}>
+            <h3>Own Vessel</h3>
+            <div className={styles.statRow}>
+              <span className={styles.statLabel}>DAMAGE</span>
+              <span className={`${styles.statValue} ${ownSub.damage > 2 ? styles.danger : ownSub.damage > 0 ? styles.warn : ''}`}>
+                {ownSub.damage}/4
+              </span>
+            </div>
+            <div className={styles.statRow}>
+              <span className={styles.statLabel}>MINES LAID</span>
+              <span className={styles.statValue}>{ownSub.mines.length}</span>
+            </div>
+            <div className={styles.statRow}>
+              <span className={styles.statLabel}>ROUTE</span>
+              <span className={styles.statValue}>{ownSub.route.length} moves</span>
+            </div>
+            <div className={styles.statRow}>
+              <span className={styles.statLabel}>HEADING</span>
+              <span className={styles.statValue}>{ownSub.lastMoveDirection ?? '—'}</span>
+            </div>
+          </section>
+        </div>
+
+        {/* Col 2: Enemy tracking map */}
         <div className={styles.mapWrapper}>
           <p className={styles.hint}>
-            Drag overlay to align route · Click map to mark enemy estimate
-            {estimate !== null && (
-              <> · <span className={styles.estimateAge}>estimate age: {estimate.age} moves</span>
-              <button onClick={clearEstimate} className={styles.clearEstimateBtn}>✕</button></>
-            )}
+            Drag overlay to align route with enemy moves
           </p>
           <div
             className={styles.mapContainer}
@@ -189,7 +205,6 @@ export function RadioOperator() {
             onMouseUp={onMouseUp}
             onMouseLeave={onMouseUp}
           >
-            {/* Base map */}
             <svg ref={svgRef} width={W} height={H} className={styles.baseMap}>
               {Array.from({ length: map.rows }).map((_, r) =>
                 Array.from({ length: map.cols }).map((_, c) => {
@@ -200,19 +215,16 @@ export function RadioOperator() {
                       x={c * cellSize} y={r * cellSize}
                       width={cellSize} height={cellSize}
                       className={isIsland ? styles.cellIsland : styles.cellSea}
-                      onClick={isIsland ? undefined : () => markEstimate(r, c)}
                     />
                   )
                 })
               )}
-              {/* Sector lines */}
               {[5, 10].map((v) => (
                 <g key={v}>
                   <line x1={v * cellSize} y1={0} x2={v * cellSize} y2={H} className={styles.sectorLine} />
                   <line x1={0} y1={v * cellSize} x2={W} y2={v * cellSize} className={styles.sectorLine} />
                 </g>
               ))}
-              {/* Estimate marker */}
               {estimate && (
                 <g className={styles.estimateMarker}>
                   <circle
@@ -231,21 +243,18 @@ export function RadioOperator() {
               )}
             </svg>
 
-            {/* Transparent overlay — draggable */}
             <svg
               width={W} height={H}
               className={`${styles.overlay} ${isDragging ? styles.dragging : ''}`}
               style={{ transform: `translate(${overlayOffset.x}px, ${overlayOffset.y}px)` }}
               onMouseDown={onMouseDown}
             >
-              {/* Tracked route */}
               {pathPoints.length > 1 && (
                 <polyline
                   points={pathPoints.map((p) => `${p.x},${p.y}`).join(' ')}
                   className={styles.trackedRoute}
                 />
               )}
-              {/* Current estimated position dot */}
               {pathPoints.length > 0 && (
                 <circle
                   cx={pathPoints[pathPoints.length - 1].x}
@@ -258,7 +267,34 @@ export function RadioOperator() {
           </div>
         </div>
 
-        <div className={styles.sidebar}>
+        {/* Col 3: Plot D-pad + logs + notes */}
+        <div className={styles.colRight}>
+          <section className={styles.plotSection}>
+            <h3>Plot Move</h3>
+            <div className={styles.dpad}>
+              <div />
+              <button onClick={() => plotMove('N')} className={styles.dpadBtn}>{DIR_ARROW.N}</button>
+              <div />
+              <button onClick={() => plotMove('W')} className={styles.dpadBtn}>{DIR_ARROW.W}</button>
+              <div />
+              <button onClick={() => plotMove('E')} className={styles.dpadBtn}>{DIR_ARROW.E}</button>
+              <div />
+              <button onClick={() => plotMove('S')} className={styles.dpadBtn}>{DIR_ARROW.S}</button>
+              <div />
+            </div>
+            <div className={styles.estimateRow}>
+              <button onClick={sendEstimate} className={styles.sendEstimateBtn}>
+                ▶ SEND ESTIMATE
+              </button>
+              {estimate !== null && (
+                <span className={styles.estimateStatus}>
+                  <span className={styles.estimateAge}>{estimate.row},{estimate.col} ({estimate.age})</span>
+                  <button onClick={clearEstimate} className={styles.clearEstimateBtn}>✕</button>
+                </span>
+              )}
+            </div>
+          </section>
+
           <section className={styles.logSection}>
             <h3>Enemy Moves <button onClick={resetOverlay} className={styles.resetBtn}>Reset</button></h3>
             <div className={styles.moveLog}>
@@ -288,7 +324,7 @@ export function RadioOperator() {
             <textarea
               className={styles.notepad}
               placeholder="Sector guesses, landmarks, observations…"
-              rows={6}
+              rows={5}
             />
           </section>
         </div>

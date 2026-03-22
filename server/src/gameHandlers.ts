@@ -12,6 +12,7 @@ import type {
   CircuitType,
 } from '@submarine/shared'
 import { roomStore } from './roomStore.js'
+import { MAPS } from '@submarine/shared'
 
 type IO = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
 type Sock = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
@@ -25,19 +26,33 @@ const DIRECTION_DELTA: Record<Direction, Coord> = {
 
 // ── Engineer system locking ───────────────────────────────────────────────────
 
-const CENTRAL_SYMBOL_TYPES = ['mine-torpedo', 'drone-sonar', 'silence-scenario', 'mine-torpedo']
-const REACTOR_SYMBOL_TYPES = ['drone-sonar', 'silence-scenario', 'radiation']
+const CENTRAL_SYMBOL_TYPES_BY_PANEL: Record<string, string[]> = {
+  W: ['mine-torpedo',     'silence-scenario', 'drone-sonar'     ],
+  N: ['drone-sonar',      'mine-torpedo',     'silence-scenario'],
+  S: ['silence-scenario', 'drone-sonar',      'mine-torpedo'    ],
+  E: ['mine-torpedo',     'drone-sonar',      'silence-scenario'],
+}
+const REACTOR_SYMBOL_TYPES_BY_PANEL: Record<string, string[]> = {
+  W: ['drone-sonar', 'radiation',    'radiation'       ],
+  N: ['drone-sonar', 'mine-torpedo', 'radiation'       ],
+  S: ['mine-torpedo','radiation',    'silence-scenario'],
+  E: ['radiation',   'drone-sonar',  'radiation'       ],
+}
+const TOTAL_RADIATION = Object.values(REACTOR_SYMBOL_TYPES_BY_PANEL)
+  .flat().filter((t) => t === 'radiation').length  // = 6
 const SYSTEM_SYMBOL_TYPE: Partial<Record<string, string>> = {
   mine: 'mine-torpedo', torpedo: 'mine-torpedo',
   drone: 'drone-sonar', sonar: 'drone-sonar',
   silence: 'silence-scenario', scenario: 'silence-scenario',
 }
 
-function isSystemLocked(eng: { breakdowns: { circuitType: string; symbolIndex: number }[] }, system: string): boolean {
+function isSystemLocked(eng: { breakdowns: { circuitType: string; symbolIndex: number; panel: string }[] }, system: string): boolean {
   const symbolType = SYSTEM_SYMBOL_TYPE[system]
   if (!symbolType) return false
   return eng.breakdowns.some((b) => {
-    const t = b.circuitType === 'central' ? CENTRAL_SYMBOL_TYPES[b.symbolIndex] : REACTOR_SYMBOL_TYPES[b.symbolIndex]
+    const t = b.circuitType === 'central'
+      ? CENTRAL_SYMBOL_TYPES_BY_PANEL[b.panel]?.[b.symbolIndex]
+      : REACTOR_SYMBOL_TYPES_BY_PANEL[b.panel]?.[b.symbolIndex]
     return t === symbolType
   })
 }
@@ -106,6 +121,10 @@ export function registerGameHandlers(io: IO, socket: Sock) {
     io.to(roomId).emit('room:updated', room)
   })
 
+  socket.on('dev:godMode', ({ enabled }) => {
+    socket.data.godMode = enabled
+  })
+
   socket.on('game:start', ({ roomId }) => {
     const room = roomStore.get(roomId)
     if (!room) return
@@ -139,30 +158,34 @@ export function registerGameHandlers(io: IO, socket: Sock) {
       col: sub.position.col + delta.col,
     }
 
-    // Validate: not out of bounds
+    const godMode = socket.data.godMode ?? false
+
+    // Validate: not out of bounds (always enforced)
     const map = { rows: 15, cols: 15 }
     if (next.row < 0 || next.row >= map.rows || next.col < 0 || next.col >= map.cols) {
       socket.emit('error', { message: 'Out of bounds' })
       return
     }
 
-    // Validate: not an island
-    if (roomStore.isIsland(room, next.row, next.col)) {
-      socket.emit('error', { message: 'Cannot move into island' })
-      return
-    }
+    if (!godMode) {
+      // Validate: not an island
+      if (roomStore.isIsland(room, next.row, next.col)) {
+        socket.emit('error', { message: 'Cannot move into island' })
+        return
+      }
 
-    // Validate: not crossing own route
-    const onRoute = sub.route.some((c) => c.row === next.row && c.col === next.col)
-    if (onRoute) {
-      socket.emit('error', { message: 'Cannot cross own route' })
-      return
-    }
+      // Validate: not crossing own route
+      const onRoute = sub.route.some((c) => c.row === next.row && c.col === next.col)
+      if (onRoute) {
+        socket.emit('error', { message: 'Cannot cross own route' })
+        return
+      }
 
-    // Validate: engineer and first mate have completed their tasks from last move
-    if (!sub.pendingTasks.engineerDone || !sub.pendingTasks.firstMateDone) {
-      socket.emit('error', { message: 'Waiting for Engineer and First Mate to complete their tasks' })
-      return
+      // Validate: engineer and first mate have completed their tasks from last move
+      if (!sub.pendingTasks.engineerDone || !sub.pendingTasks.firstMateDone) {
+        socket.emit('error', { message: 'Waiting for Engineer and First Mate to complete their tasks' })
+        return
+      }
     }
 
     // Apply move
@@ -170,11 +193,6 @@ export function registerGameHandlers(io: IO, socket: Sock) {
     sub.route.push(next)
     sub.pendingTasks = { engineerDone: false, firstMateDone: false }
     sub.lastMoveDirection = direction
-
-    // Check if sub sailed over an enemy mine
-    const enemyTeamForMine: Team = team === 'alpha' ? 'beta' : 'alpha'
-    const enemySubForMine = room.teams[enemyTeamForMine].submarine
-    const hitMine = enemySubForMine.mines.some((m) => m.row === next.row && m.col === next.col)
 
     roomStore.save(room)
 
@@ -188,10 +206,38 @@ export function registerGameHandlers(io: IO, socket: Sock) {
     }
 
     io.to(roomId).emit('room:updated', room)
+  })
 
-    if (hitMine) {
-      io.to(`${roomId}-${team}`).emit('combat:incoming', { type: 'mine', targetCoord: next })
+  socket.on('captain:detonateMine', ({ roomId, position }) => {
+    const room = roomStore.get(roomId)
+    if (!room || !socket.data.player) return
+    const { team } = socket.data.player
+    const sub = room.teams[team].submarine
+    const enemyTeam: Team = team === 'alpha' ? 'beta' : 'alpha'
+
+    const mineIndex = sub.mines.findIndex((m) => m.row === position.row && m.col === position.col)
+    if (mineIndex === -1) return
+
+    sub.mines.splice(mineIndex, 1)
+
+    const enemySub = room.teams[enemyTeam].submarine
+
+    function blastDamage(subPos: Coord | null): number {
+      if (!subPos) return 0
+      const d = Math.max(Math.abs(subPos.row - position.row), Math.abs(subPos.col - position.col))
+      return d === 0 ? 2 : d === 1 ? 1 : 0
     }
+
+    const selfDmg = blastDamage(sub.position)
+    const enemyDmg = blastDamage(enemySub.position)
+
+    if (selfDmg > 0) roomStore.addDamage(room, team, selfDmg)
+    if (enemyDmg > 0) roomStore.addDamage(room, enemyTeam, enemyDmg)
+
+    roomStore.save(room)
+    io.to(roomId).emit('room:updated', room)
+    if (selfDmg > 0) io.to(roomId).emit('combat:resolved', { team, result: selfDmg >= 2 ? 'direct' : 'indirect', newDamage: room.teams[team].submarine.damage })
+    if (enemyDmg > 0) io.to(roomId).emit('combat:resolved', { team: enemyTeam, result: enemyDmg >= 2 ? 'direct' : 'indirect', newDamage: room.teams[enemyTeam].submarine.damage })
   })
 
   socket.on('captain:surface', ({ roomId }) => {
@@ -282,14 +328,18 @@ export function registerGameHandlers(io: IO, socket: Sock) {
     const { team } = socket.data.player
     const sub = room.teams[team].submarine
     const gauge = sub.systems[system]
-    if (!gauge.ready) {
-      socket.emit('error', { message: `${system} not ready` })
-      return
-    }
+    const godMode = socket.data.godMode ?? false
 
-    if (isSystemLocked(sub.engineer, system)) {
-      socket.emit('error', { message: `${system} is locked due to an engineer breakdown` })
-      return
+    if (!godMode) {
+      if (!gauge.ready) {
+        socket.emit('error', { message: `${system} not ready` })
+        return
+      }
+
+      if (isSystemLocked(sub.engineer, system)) {
+        socket.emit('error', { message: `${system} is locked due to an engineer breakdown` })
+        return
+      }
     }
 
     const enemyTeam: Team = team === 'alpha' ? 'beta' : 'alpha'
@@ -297,17 +347,47 @@ export function registerGameHandlers(io: IO, socket: Sock) {
     roomStore.resetGauge(room, team, system)
 
     if (system === 'torpedo') {
+      const pos = params?.position as Coord | undefined
+      if (!pos || !sub.position) return
+
+      const dist = Math.abs(pos.row - sub.position.row) + Math.abs(pos.col - sub.position.col)
+      if (dist > 4) return
+
+      const enemySub = room.teams[enemyTeam].submarine
+
+      function blastDamage(subPos: Coord | null): number {
+        if (!subPos) return 0
+        const d = Math.max(Math.abs(subPos.row - pos!.row), Math.abs(subPos.col - pos!.col))
+        return d === 0 ? 2 : d === 1 ? 1 : 0
+      }
+
+      const selfDmg = blastDamage(sub.position)
+      const enemyDmg = blastDamage(enemySub.position)
+
+      if (selfDmg > 0) roomStore.addDamage(room, team, selfDmg)
+      if (enemyDmg > 0) roomStore.addDamage(room, enemyTeam, enemyDmg)
+
       roomStore.save(room)
       io.to(roomId).emit('system:activated', { team, system, params })
       io.to(roomId).emit('room:updated', room)
-      if (sub.position) {
-        io.to(`${roomId}-${enemyTeam}`).emit('combat:incoming', { type: 'torpedo', targetCoord: sub.position })
-      }
+      if (selfDmg > 0) io.to(roomId).emit('combat:resolved', { team, result: selfDmg >= 2 ? 'direct' : 'indirect', newDamage: room.teams[team].submarine.damage })
+      if (enemyDmg > 0) io.to(roomId).emit('combat:resolved', { team: enemyTeam, result: enemyDmg >= 2 ? 'direct' : 'indirect', newDamage: room.teams[enemyTeam].submarine.damage })
       return
     }
 
     if (system === 'mine') {
-      if (sub.position) sub.mines.push({ ...sub.position })
+      if (!sub.position) return
+      const pos = params?.position as Coord | undefined
+      if (!pos) return
+
+      const dr = Math.abs(pos.row - sub.position.row)
+      const dc = Math.abs(pos.col - sub.position.col)
+      if (dr > 1 || dc > 1 || (dr === 0 && dc === 0)) return
+      if (sub.route.some((r) => r.row === pos.row && r.col === pos.col)) return
+      const mapDef = MAPS[room.scenario]
+      if (mapDef.islands.some((i) => i.row === pos.row && i.col === pos.col)) return
+
+      sub.mines.push({ ...pos })
       roomStore.save(room)
       io.to(roomId).emit('system:activated', { team, system, params })
       io.to(roomId).emit('room:updated', room)
@@ -341,6 +421,15 @@ export function registerGameHandlers(io: IO, socket: Sock) {
       sub.silentMovesRemaining = 4
       roomStore.save(room)
       io.to(roomId).emit('system:activated', { team, system, params })
+      io.to(roomId).emit('room:updated', room)
+      return
+    }
+
+    if (system === 'scenario') {
+      if (sub.damage === 0) return
+      sub.damage = sub.damage - 1
+      roomStore.save(room)
+      io.to(roomId).emit('system:activated', { team, system, params: { newDamage: sub.damage } })
       io.to(roomId).emit('room:updated', room)
       return
     }
@@ -411,19 +500,21 @@ export function registerGameHandlers(io: IO, socket: Sock) {
 
     sub.pendingTasks.engineerDone = true
 
+    const isRadiation = circuitType === 'reactor' &&
+      REACTOR_SYMBOL_TYPES_BY_PANEL[panel]?.[symbolIndex] === 'radiation'
+
     if (existingIdx >= 0) {
       // Unmark — also undo radiation count if applicable
-      if (circuitType === 'reactor' && symbolIndex === 2) {
+      if (isRadiation) {
         eng.radiationCount = Math.max(0, eng.radiationCount - 1)
       }
       eng.breakdowns.splice(existingIdx, 1)
     } else {
       eng.breakdowns.push({ panel: panel as ControlPanel, circuitType: circuitType as CircuitType, symbolIndex, broken: true })
 
-      // Radiation symbol = reactor zone, index 2 (3rd reactor symbol)
-      if (circuitType === 'reactor' && symbolIndex === 2) {
+      if (isRadiation) {
         eng.radiationCount++
-        if (eng.radiationCount >= 4) {
+        if (eng.radiationCount >= TOTAL_RADIATION) {
           const newDamage = roomStore.addDamage(room, team, 1)
           eng.breakdowns = []
           eng.radiationCount = 0
@@ -432,6 +523,51 @@ export function registerGameHandlers(io: IO, socket: Sock) {
           io.to(roomId).emit('room:updated', room)
           return
         }
+      }
+    }
+
+    // Central circuit auto-repair
+    // Circuit 0 (orange): S[0], S[1], S[2], E[0]
+    // Circuit 1 (grey):   N[0], N[1], N[2], E[1]
+    // Circuit 2 (yellow): W[0], W[1], W[2], E[2]
+    if (circuitType === 'central') {
+      const CIRCUITS_CENTRAL = [
+        [{ panel: 'S', idx: 0 }, { panel: 'S', idx: 1 }, { panel: 'S', idx: 2 }, { panel: 'E', idx: 0 }],
+        [{ panel: 'N', idx: 0 }, { panel: 'N', idx: 1 }, { panel: 'N', idx: 2 }, { panel: 'E', idx: 1 }],
+        [{ panel: 'W', idx: 0 }, { panel: 'W', idx: 1 }, { panel: 'W', idx: 2 }, { panel: 'E', idx: 2 }],
+      ]
+      for (const circuit of CIRCUITS_CENTRAL) {
+        const allMarked = circuit.every(({ panel: p, idx }) =>
+          eng.breakdowns.some((b) => b.panel === p && b.circuitType === 'central' && b.symbolIndex === idx)
+        )
+        if (allMarked) {
+          eng.breakdowns = eng.breakdowns.filter(
+            (b) => !circuit.some(({ panel: p, idx }) =>
+              b.panel === p && b.circuitType === 'central' && b.symbolIndex === idx
+            )
+          )
+        }
+      }
+    }
+
+    // Area breakdown: all symbols in one panel broken → damage + full repair
+    const allPanels: ControlPanel[] = ['W', 'N', 'S', 'E']
+    for (const p of allPanels) {
+      const centralBroken = [0, 1, 2].every((i) =>
+        eng.breakdowns.some((b) => b.panel === p && b.circuitType === 'central' && b.symbolIndex === i)
+      )
+      const reactorLen = REACTOR_SYMBOL_TYPES_BY_PANEL[p].length
+      const reactorBroken = Array.from({ length: reactorLen }, (_, i) => i).every((i) =>
+        eng.breakdowns.some((b) => b.panel === p && b.circuitType === 'reactor' && b.symbolIndex === i)
+      )
+      if (centralBroken && reactorBroken) {
+        const newDamage = roomStore.addDamage(room, team, 1)
+        eng.breakdowns = []
+        eng.radiationCount = 0
+        roomStore.save(room)
+        io.to(roomId).emit('engineer:damage', { team, newDamage })
+        io.to(roomId).emit('room:updated', room)
+        return
       }
     }
 

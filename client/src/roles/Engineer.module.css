@@ -1,146 +1,217 @@
 .engineer {
+  height: 100%;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+/* ── Left column ── */
+.colLeft {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 8px;
 }
 
-.engineer h2 {
-  color: var(--accent-blue);
+.colLeft h3 {
+  font-size: 0.65rem;
+  color: var(--glow);
+  letter-spacing: 0.2em;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 5px;
 }
 
-.engineer h3 {
-  font-size: 0.7rem;
-  color: var(--accent-blue);
-  margin-bottom: 6px;
-}
-
-.legend {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  font-size: 0.75rem;
+.statusPanel, .legendPanel, .repairPanel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px 14px;
+  padding: 10px 12px;
 }
 
-.legendItem { font-weight: bold; }
+.statusItem {
+  font-size: 0.75rem;
+  color: var(--glow);
+  letter-spacing: 0.04em;
+}
 
-.legendHint {
+.radiationWarning {
+  margin-top: 8px;
+  background: rgba(204, 68, 255, 0.08);
+  border: 1px solid #cc44ff;
+  padding: 5px 8px;
+  color: #cc44ff;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+
+.legendDot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.legendPanels {
+  font-size: 0.58rem;
   margin-left: auto;
-  color: var(--text-muted);
-  font-size: 0.7rem;
+  opacity: 0.7;
+  letter-spacing: 0.04em;
 }
 
+.legendDivider {
+  border-top: 1px solid var(--border);
+  margin: 6px 0;
+}
+
+.repairPanel {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  line-height: 1.4;
+}
+
+/* ── Board: 4 panels in a row ── */
 .board {
   display: flex;
-  gap: 12px;
+  gap: 6px;
 }
 
 .panel {
+  flex: 1;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px;
-  flex: 1;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  transition: border-color 0.2s;
-}
-
-.panel.panelBroken {
-  border-color: var(--accent-red);
+  gap: 5px;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .panel.panelActive {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px var(--accent-blue);
-}
-
-.panel.panelInactive {
-  opacity: 0.35;
+  border-color: var(--glow);
+  box-shadow: 0 0 0 1px var(--glow), 0 0 14px rgba(0, 255, 106, 0.18);
 }
 
 .panelHeader {
   text-align: center;
   font-size: 0.9rem;
   font-weight: bold;
-  color: var(--accent-blue);
+  color: var(--glow);
   letter-spacing: 0.2em;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 6px;
+  padding-bottom: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
-.zone {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.markHint {
+  font-size: 0.55rem;
+  color: var(--glow);
+  letter-spacing: 0.05em;
+  animation: pulse 0.8s ease-in-out infinite;
 }
 
 .zoneLabel {
-  font-size: 0.65rem;
+  font-size: 0.55rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+  margin-top: 2px;
 }
 
-.symbols {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
+/* ── Central circuit symbols (3 per panel, stacked) ── */
+.centralSymbols {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.symbol {
-  height: 36px;
+.centralCell {
+  width: 100%;
+  height: 40px;
   background: var(--surface2);
-  border-radius: 4px;
-  border: 1px solid;
-  font-size: 0.65rem;
+  /* Left colored bar = circuit indicator */
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--circuit-color, var(--border));
+  font-size: 0.58rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.1s;
+  position: relative;
+  gap: 4px;
 }
 
-.symbol:hover { background: var(--border); }
-
-.symbolBroken {
-  background: rgba(239, 68, 68, 0.1) !important;
+.centralCell:hover {
+  background: var(--border);
 }
 
-.panelAlert {
-  font-size: 0.65rem;
-  color: var(--accent-red);
-  text-align: center;
+.cellType {
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+}
+
+.repairPing {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 0.5rem;
+  color: var(--glow);
   animation: pulse 0.5s ease-in-out infinite;
 }
 
-.repair {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
+.cellBroken {
+  background: rgba(255, 51, 51, 0.1) !important;
+  border-top-color: var(--accent-red) !important;
+  border-right-color: var(--accent-red) !important;
+  border-bottom-color: var(--accent-red) !important;
+}
+
+.cellActive {
+  box-shadow: inset 0 0 0 1px rgba(0, 255, 106, 0.4);
+}
+
+/* ── Reactor symbols (3 per panel in a row) ── */
+.reactorSymbols {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 3px;
+}
+
+.reactorCell {
+  height: 36px;
+  background: var(--surface2);
+  border: 1px solid var(--circuit-color, var(--border));
+  font-size: 0.5rem;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.reactorCell:hover {
+  background: var(--border);
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.3; }
-}
-
-.radiationWarning {
-  background: #1a0030;
-  border: 1px solid #a855f7;
-  border-radius: 6px;
-  padding: 8px 14px;
-  color: #a855f7;
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
 }

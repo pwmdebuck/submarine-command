@@ -11,12 +11,14 @@ interface GameStore {
 
   // Dev
   devMode: boolean
+  godMode: boolean
 
   // Actions
   setPlayer: (p: Player) => void
   setRoomId: (id: string) => void
   setRoom: (r: GameRoom) => void
   setDevMode: (on: boolean) => void
+  setGodMode: (on: boolean) => void
   reset: () => void
 }
 
@@ -25,10 +27,12 @@ export const useGameStore = create<GameStore>((set) => ({
   roomId: null,
   room: null,
   devMode: false,
+  godMode: false,
 
   setPlayer: (player) => set({ player }),
   setRoomId: (roomId) => set({ roomId }),
   setRoom: (room) => set({ room }),
   setDevMode: (devMode) => set({ devMode }),
-  reset: () => set({ player: null, roomId: null, room: null, devMode: false }),
+  setGodMode: (godMode) => set({ godMode }),
+  reset: () => set({ player: null, roomId: null, room: null, devMode: false, godMode: false }),
 }))

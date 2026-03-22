@@ -26,7 +26,7 @@ function makeSubmarineState() {
       drone:    makeGauge(4),
       sonar:    makeGauge(3),
       silence:  makeGauge(6),
-      scenario: makeGauge(4),
+      scenario: makeGauge(12),
     },
     engineer: makeEngineerState(),
     surfacing: null,

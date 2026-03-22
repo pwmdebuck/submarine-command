@@ -1,20 +1,32 @@
 .radioOp {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   height: 100%;
 }
 
+.radioOp h3 {
+  font-size: 0.65rem;
+  color: var(--glow);
+  letter-spacing: 0.2em;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Intercept flash ── */
 .interceptFlash {
   display: none;
-  background: #7c2d12;
-  border: 2px solid #f97316;
-  border-radius: 6px;
-  padding: 10px 16px;
-  font-size: 1.4rem;
+  background: #1a0a00;
+  border: 2px solid var(--accent-yellow);
+  padding: 8px 16px;
+  font-size: 1.2rem;
   font-weight: bold;
-  color: #fed7aa;
-  letter-spacing: 0.1em;
+  color: var(--accent-yellow);
+  letter-spacing: 0.12em;
   text-align: center;
   animation: flashPulse 0.2s ease-out;
 }
@@ -24,78 +36,83 @@
 }
 
 @keyframes flashPulse {
-  0%   { transform: scale(1.08); }
+  0%   { transform: scale(1.06); }
   100% { transform: scale(1); }
 }
 
-.manualInput {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 14px;
-}
-
-.manualLabel {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-}
-
-.dpad {
-  display: grid;
-  grid-template-columns: repeat(3, 32px);
-  grid-template-rows: repeat(3, 32px);
-  gap: 2px;
-}
-
-.dpadBtn {
-  font-size: 0.85rem;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #f97316;
-  border-color: #f97316;
-  background: transparent;
-}
-
-.dpadBtn:hover {
-  background: rgba(249, 115, 22, 0.15);
-}
-
-.radioOp h2 {
-  color: var(--accent-blue);
-}
-
-.radioOp h3 {
-  font-size: 0.7rem;
-  color: var(--accent-blue);
-  letter-spacing: 0.1em;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
+/* ── 3-column layout ── */
 .layout {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: 210px 1fr 200px;
+  gap: 12px;
   flex: 1;
+  overflow: hidden;
 }
 
-.mapWrapper {
+.colLeft {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow-y: auto;
+}
+
+.colRight {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+/* ── Own position ── */
+.ownMapSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sectionLabel {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  letter-spacing: 0.2em;
+}
+
+/* ── Own status ── */
+.ownStatus {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(26, 74, 37, 0.4);
+  font-size: 0.7rem;
+}
+
+.statRow:last-child { border-bottom: none; }
+
+.statLabel {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+}
+
+.statValue { color: var(--glow); }
+.warn   { color: var(--accent-yellow) !important; }
+.danger { color: var(--accent-red) !important; }
+
+/* ── Enemy tracking map ── */
+.mapWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .hint {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-muted);
   font-style: italic;
 }
@@ -103,10 +120,10 @@
 .mapContainer {
   position: relative;
   border: 1px solid var(--border);
-  border-radius: 4px;
   overflow: hidden;
   cursor: grab;
   user-select: none;
+  box-shadow: 0 0 12px rgba(0, 255, 106, 0.06);
 }
 
 .mapContainer:active { cursor: grabbing; }
@@ -122,114 +139,27 @@
 
 .overlay.dragging { cursor: grabbing; }
 
-.cellSea    { fill: #0d2a4a; stroke: #1e4080; stroke-width: 0.5; }
-.cellIsland { fill: #3a3010; stroke: #6b5c1e; stroke-width: 0.5; }
+/* Map cells — phosphor palette */
+.cellSea    { fill: #060f09; stroke: rgba(0,255,106,0.1); stroke-width: 0.5; }
+.cellIsland { fill: #1a1200; stroke: #3d2d00; stroke-width: 0.5; }
 
 .sectorLine {
-  stroke: #2a4a80;
+  stroke: rgba(0, 255, 106, 0.15);
   stroke-width: 1;
   stroke-dasharray: 4 4;
 }
 
+/* Enemy markers stay orange/red for contrast */
 .trackedRoute {
   fill: none;
-  stroke: #f97316;
+  stroke: #ff6633;
   stroke-width: 2;
   stroke-opacity: 0.85;
 }
 
 .enemyDot {
-  fill: #f97316;
+  fill: #ff6633;
   opacity: 0.9;
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 180px;
-  max-width: 220px;
-}
-
-.logSection {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px;
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.moveLog {
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.empty { font-size: 0.7rem; color: var(--text-muted); }
-
-.logEntry {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  font-size: 0.75rem;
-  padding: 2px 0;
-  border-bottom: 1px solid var(--surface2);
-}
-
-.turnNum { color: var(--text-muted); font-size: 0.65rem; }
-.arrow { color: #f97316; }
-
-.resetBtn {
-  font-size: 0.65rem;
-  padding: 2px 8px;
-  border-color: var(--accent-red);
-  color: var(--accent-red);
-  background: transparent;
-}
-
-.notes {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px;
-}
-
-.notepad {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 0.75rem;
-  padding: 6px;
-  border-radius: 4px;
-  resize: vertical;
-}
-
-.intelSection {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px;
-}
-
-.intelLog {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 100px;
-  overflow-y: auto;
-}
-
-.intelEntry {
-  font-size: 0.72rem;
-  color: var(--accent-blue);
-  font-family: monospace;
 }
 
 .estimateDot {
@@ -254,7 +184,7 @@
 }
 
 .clearEstimateBtn {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   padding: 0 4px;
   margin-left: 4px;
   border-color: #f97316;
@@ -262,4 +192,144 @@
   background: transparent;
   line-height: 1;
   vertical-align: middle;
+}
+
+/* ── Right column: D-pad + logs ── */
+.plotSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+}
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(3, 36px);
+  gap: 2px;
+}
+
+.dpadBtn {
+  font-size: 0.9rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-yellow);
+  border-color: var(--accent-yellow);
+  background: transparent;
+}
+
+.dpadBtn:hover {
+  background: rgba(255, 170, 0, 0.15) !important;
+  border-color: var(--accent-yellow) !important;
+  box-shadow: 0 0 6px rgba(255, 170, 0, 0.3) !important;
+}
+
+.estimateRow {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sendEstimateBtn {
+  font-size: 0.65rem;
+  padding: 4px 8px;
+  border-color: #f97316;
+  color: #f97316;
+  background: rgba(249, 115, 22, 0.08);
+  letter-spacing: 0.06em;
+}
+
+.sendEstimateBtn:hover {
+  background: rgba(249, 115, 22, 0.2) !important;
+  box-shadow: 0 0 6px rgba(249, 115, 22, 0.3) !important;
+}
+
+.estimateStatus {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: #f97316;
+}
+
+.logSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.moveLog {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  max-height: 140px;
+}
+
+.empty { font-size: 0.68rem; color: var(--text-muted); }
+
+.logEntry {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.72rem;
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(26, 74, 37, 0.4);
+}
+
+.turnNum { color: var(--text-muted); font-size: 0.62rem; }
+.arrow { color: #ff6633; }
+
+.resetBtn {
+  font-size: 0.62rem;
+  padding: 2px 6px;
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  background: transparent;
+}
+
+.intelSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px;
+}
+
+.intelLog {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+.intelEntry {
+  font-size: 0.68rem;
+  color: var(--glow);
+  opacity: 0.8;
+  font-family: monospace;
+}
+
+.notes {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px;
+}
+
+.notepad {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.72rem;
+  padding: 6px;
+  resize: vertical;
 }

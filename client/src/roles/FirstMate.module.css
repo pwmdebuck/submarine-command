@@ -1,26 +1,49 @@
 .firstMate {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-width: 600px;
-}
-
-.firstMate h2 {
-  color: var(--accent-blue);
+  gap: 12px;
 }
 
 .firstMate h3 {
-  font-size: 0.7rem;
-  color: var(--accent-blue);
-  letter-spacing: 0.1em;
+  font-size: 0.65rem;
+  color: var(--glow);
+  letter-spacing: 0.2em;
   margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
 }
 
-.damage {
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 210px 1fr 175px;
+  gap: 12px;
+  align-items: start;
+}
+
+.colLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colMid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.colRight {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Hull ── */
+.hullSection {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 14px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -28,21 +51,20 @@
 
 .damageTrack {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .damageOk {
-  width: 48px;
-  height: 20px;
-  background: var(--accent-green);
-  border-radius: 3px;
+  flex: 1;
+  height: 16px;
+  background: var(--glow);
+  opacity: 0.6;
 }
 
 .damageHit {
-  width: 48px;
-  height: 20px;
+  flex: 1;
+  height: 16px;
   background: var(--accent-red);
-  border-radius: 3px;
   position: relative;
 }
 
@@ -54,41 +76,74 @@
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
-.damageLabel { font-size: 0.75rem; color: var(--text-muted); }
+.damageLabel { font-size: 0.68rem; color: var(--text-muted); }
 
+/* ── Vessel stats ── */
+.vesselStats {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(26, 74, 37, 0.4);
+  font-size: 0.7rem;
+}
+
+.statRow:last-child { border-bottom: none; }
+
+.statLabel {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+}
+
+.statValue { color: var(--glow); }
+.statUsed  { color: var(--text-muted) !important; }
+.statAvail { color: var(--glow) !important; }
+
+/* ── System groups ── */
 .group {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 14px;
+  padding: 12px 14px;
 }
 
 .gauges {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .gauge {
   flex: 1;
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 6px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .gauge.ready {
-  border-color: var(--accent-green);
+  border-color: var(--glow);
+  box-shadow: 0 0 8px rgba(0, 255, 106, 0.15);
+}
+
+.gauge.gaugeLocked {
+  opacity: 0.5;
+  border-color: var(--accent-red);
 }
 
 .gaugeName {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   text-transform: capitalize;
   text-align: center;
@@ -97,19 +152,17 @@
 .gaugeTrack {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .gaugeFilled {
-  height: 10px;
-  background: var(--accent-blue);
-  border-radius: 2px;
+  height: 8px;
+  background: var(--glow);
 }
 
 .gaugeEmpty {
-  height: 10px;
+  height: 8px;
   background: var(--border);
-  border-radius: 2px;
 }
 
 .gaugeActions {
@@ -119,16 +172,16 @@
 }
 
 .readyBadge {
-  font-size: 0.65rem;
-  color: var(--accent-green);
+  font-size: 0.62rem;
+  color: var(--glow);
   letter-spacing: 0.1em;
   align-self: center;
   animation: pulse 1s ease-in-out infinite;
 }
 
 .fireBtn {
-  border-color: var(--accent-green) !important;
-  color: var(--accent-green) !important;
+  border-color: var(--glow) !important;
+  color: var(--glow) !important;
 }
 
 @keyframes pulse {
@@ -136,21 +189,23 @@
   50%       { opacity: 0.5; }
 }
 
+/* ── Combat modal ── */
 .combatModal {
-  background: #3b0000;
+  background: rgba(60, 0, 0, 0.95);
   border: 2px solid var(--accent-red);
-  border-radius: 8px;
-  padding: 18px;
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   animation: pulse 0.8s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(255, 51, 51, 0.4);
 }
 
 .combatModal h3 {
   color: var(--accent-red) !important;
   font-size: 1rem !important;
   letter-spacing: 0.15em;
+  border-bottom-color: var(--accent-red) !important;
 }
 
 .combatActions {
@@ -158,6 +213,34 @@
   gap: 8px;
 }
 
-.clearBtn    { flex: 1; background: transparent; border-color: var(--accent-green); color: var(--accent-green); }
-.indirectBtn { flex: 1; background: transparent; border-color: #f59e0b; color: #f59e0b; }
+.clearBtn    { flex: 1; background: transparent; border-color: var(--glow); color: var(--glow); }
+.indirectBtn { flex: 1; background: transparent; border-color: #ffaa00; color: #ffaa00; }
 .directBtn   { flex: 1; background: transparent; border-color: var(--accent-red); color: var(--accent-red); }
+
+/* ── Status summary ── */
+.statusSummary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(26, 74, 37, 0.4);
+  font-size: 0.7rem;
+}
+
+.summaryRow:last-child { border-bottom: none; }
+
+.summaryLabel {
+  color: var(--text-muted);
+  text-transform: capitalize;
+  font-size: 0.65rem;
+}
+
+.statusReady    { color: var(--glow); animation: pulse 1s ease-in-out infinite; }
+.statusLocked   { color: var(--accent-red); }
+.statusCharging { color: var(--text-muted); }

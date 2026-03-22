@@ -31,6 +31,9 @@ export interface ClientToServerEvents {
 
   // Combat responses (enemy team confirms hit)
   'combat:respondHit': (payload: { roomId: string; result: 'clear' | 'indirect' | 'direct' }) => void
+
+  // Dev
+  'dev:godMode': (payload: { enabled: boolean }) => void
 }
 
 // ─── Server → Client ──────────────────────────────────────────────────────────
@@ -83,4 +86,5 @@ export interface InterServerEvents {}
 export interface SocketData {
   player: Player
   roomId: string
+  godMode?: boolean
 }

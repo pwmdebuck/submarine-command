@@ -1,5 +1,6 @@
 import type { Role, Team } from '@submarine/shared'
 import { useGameStore } from '../store'
+import { socket } from '../socket'
 import { Captain } from '../roles/Captain'
 import { FirstMate } from '../roles/FirstMate'
 import { Engineer } from '../roles/Engineer'
@@ -16,7 +17,13 @@ const ROLE_LABELS: Record<Role, string> = {
 }
 
 export function Game() {
-  const { player, room, devMode, setPlayer } = useGameStore()
+  const { player, room, devMode, godMode, setPlayer, setGodMode } = useGameStore()
+
+  function toggleGodMode() {
+    const next = !godMode
+    setGodMode(next)
+    socket.emit('dev:godMode', { enabled: next })
+  }
 
   if (!player || !room) return null
 
@@ -31,6 +38,8 @@ export function Game() {
 
   const teamSub = room.teams[player.team].submarine
   const damage = teamSub.damage
+  const enemyTeam = player.team === 'alpha' ? 'beta' : 'alpha'
+  const enemyDamage = room.teams[enemyTeam].submarine.damage
 
   return (
     <div className={styles.game}>
@@ -41,6 +50,11 @@ export function Game() {
         <span className={styles.damage}>
           Hull: {Array.from({ length: 4 }).map((_, i) => (
             <span key={i} className={i < damage ? styles.dmgFilled : styles.dmgEmpty}>■</span>
+          ))}
+        </span>
+        <span className={styles.enemyDamage}>
+          Enemy: {Array.from({ length: 4 }).map((_, i) => (
+            <span key={i} className={i < enemyDamage ? styles.dmgFilled : styles.dmgEmpty}>■</span>
           ))}
         </span>
       </header>
@@ -56,7 +70,20 @@ export function Game() {
           borderRadius: '8px', padding: '0.5rem', zIndex: 9999,
           display: 'flex', flexDirection: 'column', gap: '0.25rem',
         }}>
-          <div style={{ fontSize: '0.7rem', color: '#f0a500', marginBottom: '0.25rem' }}>⚡ DEV</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '0.7rem', color: '#f0a500' }}>⚡ DEV</span>
+            <button
+              onClick={toggleGodMode}
+              style={{
+                fontSize: '0.6rem', padding: '1px 5px', cursor: 'pointer',
+                background: godMode ? '#f0a500' : '#333',
+                color: godMode ? '#000' : '#aaa',
+                border: `1px solid ${godMode ? '#f0a500' : '#555'}`, borderRadius: '3px',
+              }}
+            >
+              {godMode ? '★ GOD' : '☆ GOD'}
+            </button>
+          </div>
           {TEAMS.map(t => (
             <div key={t} style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
               <span style={{ fontSize: '0.7rem', color: '#888', width: '2.5rem' }}>{t}</span>
