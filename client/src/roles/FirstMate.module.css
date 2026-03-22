@@ -1,0 +1,163 @@
+.firstMate {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 600px;
+}
+
+.firstMate h2 {
+  color: var(--accent-blue);
+}
+
+.firstMate h3 {
+  font-size: 0.7rem;
+  color: var(--accent-blue);
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+.damage {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.damageTrack {
+  display: flex;
+  gap: 8px;
+}
+
+.damageOk {
+  width: 48px;
+  height: 20px;
+  background: var(--accent-green);
+  border-radius: 3px;
+}
+
+.damageHit {
+  width: 48px;
+  height: 20px;
+  background: var(--accent-red);
+  border-radius: 3px;
+  position: relative;
+}
+
+.damageHit::after {
+  content: '✕';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.damageLabel { font-size: 0.75rem; color: var(--text-muted); }
+
+.group {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+}
+
+.gauges {
+  display: flex;
+  gap: 12px;
+}
+
+.gauge {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.2s;
+}
+
+.gauge.ready {
+  border-color: var(--accent-green);
+}
+
+.gaugeName {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: capitalize;
+  text-align: center;
+}
+
+.gaugeTrack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gaugeFilled {
+  height: 10px;
+  background: var(--accent-blue);
+  border-radius: 2px;
+}
+
+.gaugeEmpty {
+  height: 10px;
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.gaugeActions {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.readyBadge {
+  font-size: 0.65rem;
+  color: var(--accent-green);
+  letter-spacing: 0.1em;
+  align-self: center;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.fireBtn {
+  border-color: var(--accent-green) !important;
+  color: var(--accent-green) !important;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.combatModal {
+  background: #3b0000;
+  border: 2px solid var(--accent-red);
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
+.combatModal h3 {
+  color: var(--accent-red) !important;
+  font-size: 1rem !important;
+  letter-spacing: 0.15em;
+}
+
+.combatActions {
+  display: flex;
+  gap: 8px;
+}
+
+.clearBtn    { flex: 1; background: transparent; border-color: var(--accent-green); color: var(--accent-green); }
+.indirectBtn { flex: 1; background: transparent; border-color: #f59e0b; color: #f59e0b; }
+.directBtn   { flex: 1; background: transparent; border-color: var(--accent-red); color: var(--accent-red); }

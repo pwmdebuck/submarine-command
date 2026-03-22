@@ -1,0 +1,265 @@
+.radioOp {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.interceptFlash {
+  display: none;
+  background: #7c2d12;
+  border: 2px solid #f97316;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #fed7aa;
+  letter-spacing: 0.1em;
+  text-align: center;
+  animation: flashPulse 0.2s ease-out;
+}
+
+.interceptVisible {
+  display: block;
+}
+
+@keyframes flashPulse {
+  0%   { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.manualInput {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 14px;
+}
+
+.manualLabel {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 32px);
+  grid-template-rows: repeat(3, 32px);
+  gap: 2px;
+}
+
+.dpadBtn {
+  font-size: 0.85rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f97316;
+  border-color: #f97316;
+  background: transparent;
+}
+
+.dpadBtn:hover {
+  background: rgba(249, 115, 22, 0.15);
+}
+
+.radioOp h2 {
+  color: var(--accent-blue);
+}
+
+.radioOp h3 {
+  font-size: 0.7rem;
+  color: var(--accent-blue);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.layout {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+}
+
+.mapWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hint {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.mapContainer {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+}
+
+.mapContainer:active { cursor: grabbing; }
+
+.baseMap { display: block; }
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: all;
+}
+
+.overlay.dragging { cursor: grabbing; }
+
+.cellSea    { fill: #0d2a4a; stroke: #1e4080; stroke-width: 0.5; }
+.cellIsland { fill: #3a3010; stroke: #6b5c1e; stroke-width: 0.5; }
+
+.sectorLine {
+  stroke: #2a4a80;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.trackedRoute {
+  fill: none;
+  stroke: #f97316;
+  stroke-width: 2;
+  stroke-opacity: 0.85;
+}
+
+.enemyDot {
+  fill: #f97316;
+  opacity: 0.9;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.logSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.moveLog {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.empty { font-size: 0.7rem; color: var(--text-muted); }
+
+.logEntry {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.75rem;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--surface2);
+}
+
+.turnNum { color: var(--text-muted); font-size: 0.65rem; }
+.arrow { color: #f97316; }
+
+.resetBtn {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  background: transparent;
+}
+
+.notes {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.notepad {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.75rem;
+  padding: 6px;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.intelSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.intelLog {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.intelEntry {
+  font-size: 0.72rem;
+  color: var(--accent-blue);
+  font-family: monospace;
+}
+
+.estimateDot {
+  fill: #f97316;
+  fill-opacity: 0.25;
+  stroke: #f97316;
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.estimateAgeLabel {
+  fill: #f97316;
+  font-size: 10px;
+  font-family: var(--font);
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.estimateAge {
+  color: #f97316;
+  font-style: normal;
+}
+
+.clearEstimateBtn {
+  font-size: 0.65rem;
+  padding: 0 4px;
+  margin-left: 4px;
+  border-color: #f97316;
+  color: #f97316;
+  background: transparent;
+  line-height: 1;
+  vertical-align: middle;
+}

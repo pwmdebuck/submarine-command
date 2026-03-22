@@ -1,0 +1,146 @@
+.engineer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.engineer h2 {
+  color: var(--accent-blue);
+}
+
+.engineer h3 {
+  font-size: 0.7rem;
+  color: var(--accent-blue);
+  margin-bottom: 6px;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+.legendItem { font-weight: bold; }
+
+.legendHint {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.board {
+  display: flex;
+  gap: 12px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s;
+}
+
+.panel.panelBroken {
+  border-color: var(--accent-red);
+}
+
+.panel.panelActive {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px var(--accent-blue);
+}
+
+.panel.panelInactive {
+  opacity: 0.35;
+}
+
+.panelHeader {
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: var(--accent-blue);
+  letter-spacing: 0.2em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.zone {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.zoneLabel {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.symbols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.symbol {
+  height: 36px;
+  background: var(--surface2);
+  border-radius: 4px;
+  border: 1px solid;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.symbol:hover { background: var(--border); }
+
+.symbolBroken {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.panelAlert {
+  font-size: 0.65rem;
+  color: var(--accent-red);
+  text-align: center;
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+.repair {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.radiationWarning {
+  background: #1a0030;
+  border: 1px solid #a855f7;
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: #a855f7;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+}

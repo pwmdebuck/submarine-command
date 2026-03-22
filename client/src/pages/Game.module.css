@@ -1,0 +1,36 @@
+.game {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.roomCode { color: var(--accent-green); font-weight: bold; }
+.scenario { color: var(--text-muted); }
+.role { color: var(--accent-blue); margin-left: auto; }
+
+.damage {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.dmgFilled { color: var(--accent-red); }
+.dmgEmpty  { color: var(--surface2); }
+
+.main {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}

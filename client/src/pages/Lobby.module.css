@@ -1,0 +1,142 @@
+.lobby {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 40px 20px;
+  min-height: 100%;
+}
+
+.header {
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  color: var(--accent-blue);
+  letter-spacing: 0.3em;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+}
+
+.panels {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 900px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 240px;
+  flex: 1;
+}
+
+.panel h2 {
+  font-size: 0.8rem;
+  color: var(--accent-blue);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.panel label input,
+.panel label select {
+  width: 100%;
+}
+
+.error {
+  color: var(--accent-red);
+  font-size: 0.85rem;
+}
+
+.roomInfo {
+  background: var(--surface);
+  border: 1px solid var(--accent-blue);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.roomInfo h2 {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.code {
+  color: var(--accent-green);
+  font-size: 1.2rem;
+}
+
+.teams {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.team h3 {
+  font-size: 0.75rem;
+  color: var(--accent-blue);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.slot {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--surface2);
+  font-size: 0.8rem;
+}
+
+.roleLabel {
+  color: var(--text-muted);
+}
+
+.filled {
+  color: var(--accent-green);
+}
+
+.empty {
+  color: var(--surface2);
+}
+
+.startBtn {
+  align-self: center;
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: white;
+  padding: 10px 32px;
+  font-size: 0.9rem;
+  letter-spacing: 0.15em;
+}
+
+.startBtn:hover {
+  background: #2563eb;
+}
